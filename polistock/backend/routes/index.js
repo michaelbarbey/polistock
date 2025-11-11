@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/api/message', (req, res) => {
-  res.json({ message: 'Hello from Express backend!' });
+  res.json({ message: 'Hello from the Express backend!' });
 });
 
 module.exports = router;

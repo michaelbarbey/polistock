@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "start": "concurrently \"npm start --prefix polistock/backend\" \"npm run dev --prefix polistock/frontend\""
+  }
+}

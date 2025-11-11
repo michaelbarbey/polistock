@@ -1,17 +1,21 @@
 import createError from 'http-errors';
-import express, { json, urlencoded, static as expressStatic} from 'express';
-import { join } from 'path';
+import express, { json, urlencoded, static as expressStatic } from 'express';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 
-import indexRouter from './routes/index';
-import usersRouter from './routes/users';
+import indexRouter from './routes/index.js';
+import usersRouter from './routes/users.js';
 
-var app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
 
 // view engine setup
 app.set('views', join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
 app.use(json());
@@ -23,12 +27,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

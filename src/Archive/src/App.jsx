@@ -8,14 +8,16 @@ function App() {
   const [person, setPerson] = useState();
 
   useEffect(() => {
-    fetch("https://twyxizipqk.execute-api.us-west-2.amazonaws.com")
+    fetch("/api/hello")
       .then((response) => response.json())
       .then((res) => console.log(res));
   }, []);
 
   return (
     <>
-      <div>{person?.name}</div>
+      <div>
+        {person?.name}
+      </div>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

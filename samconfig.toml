@@ -1,12 +1,12 @@
 version = 0.1
 
 [default.deploy.parameters]
-stack_name = "sam-app"
+stack_name = "michaelclass2"
 resolve_s3 = true
-s3_prefix = "sam-app"
-region = "us-west-2"
+s3_prefix = "michaelclass2"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
+confirm_changeset = true
 
 [default.global.parameters]
 region = "us-west-2"

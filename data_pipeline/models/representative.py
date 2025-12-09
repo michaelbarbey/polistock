@@ -15,5 +15,5 @@ class Official:
         self.photo_url = photo_url
         self.transactions = []
         
-        def add_transaction(self, transaction):
-            self.transactions.append(transaction)
+    def add_transaction(self, transaction):
+        self.transactions.append(transaction)

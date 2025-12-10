@@ -1,7 +1,6 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
   text-align: center;
 }
 
@@ -39,4 +38,157 @@
 
 .read-the-docs {
   color: #888;
+}
+
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Left pane (form) */
+.left-pane {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 4rem;
+  background: radial-gradient(circle at top left, #1d283a, #020617);
+  color: #e5e7eb;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 1.5rem;
+  padding: 2.5rem 2.25rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(18px);
+}
+
+.form-card h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.9rem;
+}
+
+.subtitle {
+  margin: 0 0 1.8rem;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+/* Form styles */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+}
+
+label {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  text-align: left;
+}
+
+input {
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input::placeholder {
+  color: #6b7280;
+}
+
+input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+}
+
+/* Button */
+.primary-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.8rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.98rem;
+  background: linear-gradient(135deg, #38bdf8, #22c55e);
+  color: #020617;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.8);
+  opacity: 0.95;
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+  opacity: 0.9;
+}
+
+/* Right pane (image) */
+.right-pane {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at bottom right, #22c55e, #0f172a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.right-pane img {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  border-radius: 1.75rem;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.9);
+  object-fit: cover;
+}
+
+/* Responsive behavior */
+@media (max-width: 900px) {
+  .page {
+    flex-direction: column-reverse;
+  }
+
+  .left-pane,
+  .right-pane {
+    flex: unset;
+    width: 100%;
+  }
+
+  .left-pane {
+    padding: 2.5rem 1.75rem 3rem;
+  }
+
+  .right-pane {
+    padding: 1.5rem 1.75rem 1rem;
+  }
+
+  .form-card {
+    padding: 2rem 1.75rem;
+  }
 }

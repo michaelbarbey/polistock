@@ -1,7 +1,92 @@
-import React from "react";
+import React, { useState } from "react";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "./firebase"; // adjust path if needed
 import "./Dashboard.css";
+ 
 
+/* ===============================
+   Firestore ZIP lookup helper
+   =============================== */
+async function fetchZipLookup(zip) {
+  const projectId = import.meta.env.VITE_FIRESTORE_PROJECT_ID;
+  const apiKey = import.meta.env.VITE_FIRESTORE_API_KEY;
+  const col = import.meta.env.VITE_FIRESTORE_ZIP_COLLECTION || "zip_lookup";
+
+  if (!projectId || !apiKey) throw new Error("Missing Firestore env vars");
+
+  const url =
+    `https://firestore.googleapis.com/v1/projects/${projectId}` +
+    `/databases/(default)/documents/${col}/${zip}?key=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("ZIP not found");
+  const doc = await res.json();
+
+  const f = doc?.fields || {};
+  const s = (k) => f?.[k]?.stringValue ?? "";
+
+  return {
+    zip: s("zip"),
+    fullName: s("fullName"),
+    state: s("state"),
+    party: s("party"),
+    stateDistrictRaw: s("stateDistrictRaw"),
+    bioguideId: s("bioguideId"),
+  };
+}
+
+/* ===============================
+   Dashboard Component
+   =============================== */
 function Dashboard() {
+  /* 🔹 NEW: Quick Search state */
+  const [zip, setZip] = useState("");
+const [qsLoading, setQsLoading] = useState(false);
+const [qsError, setQsError] = useState("");
+const [qsResult, setQsResult] = useState(null);
+
+async function handleQuickSearch(e) {
+  e.preventDefault();
+  setQsError("");
+  setQsResult(null);
+
+  const z = zip.trim();
+  if (!z) {
+    setQsError("Enter a ZIP code.");
+    return;
+  }
+
+  setQsLoading(true);
+  try {
+    // IMPORTANT: collection name must match yours exactly
+    const membersRef = collection(db, "members");
+
+    // zipCode stored as STRING in Firestore? then compare to string z
+    const q = query(membersRef, where("zipCode", "==", z), limit(1));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      setQsError("No representative found for that ZIP.");
+      return;
+    }
+
+    const data = snap.docs[0].data();
+
+    // Display only what you want
+    setQsResult({
+      fullName: data.fullName,
+      state: data.state,
+      party: data.party,
+      stateDistrictRaw: data.stateDistrictRaw,
+    });
+  } catch (err) {
+    setQsError("Quick Search failed.");
+  } finally {
+    setQsLoading(false);
+  }
+}
+
+
   return (
     <div className="dashboard">
       {/* Sidebar */}
@@ -26,7 +111,7 @@ function Dashboard() {
 
       {/* Main content */}
       <div className="dashboard-main">
-        {/* Top header */}
+        {/* Header */}
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Dashboard</h1>
@@ -43,11 +128,41 @@ function Dashboard() {
 
         {/* Main content area */}
         <main className="dashboard-content">
+
+          {/* 🔹 NEW SECTION: Quick Search */}
+          <section className="quick-search">
+            <h2 className="info-section-title">Quick Search</h2>
+
+            <form onSubmit={handleQuickSearch} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+              <input
+                placeholder="ZIP Code (e.g. 10465)"
+                value={zip}
+                onChange={(e) => setZip(e.target.value)}
+                style={{ padding: 10, borderRadius: 10 }}
+              />
+
+              <button className="primary-btn" type="submit" disabled={qsLoading}>
+                {qsLoading ? "Searching..." : "Search"}
+              </button>
+            </form>
+
+            {qsError && <p>{qsError}</p>}
+
+            {qsResult && (
+              <div>
+                <p><strong>Name:</strong> {qsResult.fullName}</p>
+                <p><strong>State:</strong> {qsResult.state}</p>
+                <p><strong>Party:</strong> {qsResult.party}</p>
+                <p><strong>District:</strong> {qsResult.stateDistrictRaw}</p>
+              </div>
+            )}
+          </section>
+
+
           {/* SECTION 1: Profile layout */}
           <section className="profile-section">
             <div className="profile-avatar-wrapper">
               <div className="profile-avatar">
-                {/* You can replace this with an <img /> later */}
                 <span className="profile-initials">JS</span>
               </div>
             </div>
@@ -57,8 +172,7 @@ function Dashboard() {
               <p className="profile-title">Community Program Participant</p>
               <p className="profile-description">
                 This area can be used to briefly describe the user, their role,
-                or the purpose of this dashboard. Later, we can populate this with
-                dynamic data from your API.
+                or the purpose of this dashboard.
               </p>
             </div>
           </section>
@@ -68,67 +182,40 @@ function Dashboard() {
             <h2 className="info-section-title">Key Information</h2>
 
             <div className="info-grid">
-              {/* Card 1 */}
               <article className="info-card">
                 <h3 className="info-card-title">Program Status</h3>
                 <p className="info-card-body">
-                  Currently enrolled in the Spring 2025 cohort with 3 sessions
-                  completed and 2 upcoming.
+                  Currently enrolled in the Spring 2025 cohort.
                 </p>
                 <p className="info-card-meta">Last updated: Today</p>
               </article>
 
-              {/* Card 2 */}
               <article className="info-card">
                 <h3 className="info-card-title">Location Details</h3>
                 <p className="info-card-body">
-                  Based in New York, NY (10001). This information can later be
-                  synced from your profile or submission data.
+                  Based in New York, NY (10001).
                 </p>
                 <p className="info-card-meta">Source: Profile form</p>
               </article>
 
-              {/* Card 3 */}
               <article className="info-card">
                 <h3 className="info-card-title">Recent Activity</h3>
                 <p className="info-card-body">
-                  Submitted an intake form, updated contact details, and viewed
-                  the resource library this week.
+                  Submitted an intake form and updated contact details.
                 </p>
-                <p className="info-card-meta">Activity window: Last 7 days</p>
+                <p className="info-card-meta">Last 7 days</p>
               </article>
 
-              {/* Card 4 */}
               <article className="info-card">
                 <h3 className="info-card-title">Support Contact</h3>
                 <p className="info-card-body">
-                  Assigned to Case Manager: Jordan Lee. Contact via email or
-                  in-app messaging for assistance.
+                  Assigned Case Manager: Jordan Lee.
                 </p>
-                <p className="info-card-meta">Response time: ~24 hours</p>
-              </article>
-
-              {/* Card 5 */}
-              <article className="info-card">
-                <h3 className="info-card-title">Upcoming Milestones</h3>
-                <p className="info-card-body">
-                  Orientation follow-up, mid-program check-in, and final
-                  reflection survey are scheduled.
-                </p>
-                <p className="info-card-meta">Next milestone: In 5 days</p>
-              </article>
-
-              {/* Card 6 */}
-              <article className="info-card">
-                <h3 className="info-card-title">Resources Access</h3>
-                <p className="info-card-body">
-                  Access granted to learning modules, downloadable guides, and
-                  community events calendar.
-                </p>
-                <p className="info-card-meta">Access level: Standard</p>
+                <p className="info-card-meta">~24h response</p>
               </article>
             </div>
           </section>
+
         </main>
       </div>
     </div>

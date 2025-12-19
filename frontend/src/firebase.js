@@ -2,13 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDPr-wG-tejan1BkiQ5cacgx8LrDT0YIZw",
-  authDomain: "polistock-db.firebaseapp.com",
-  projectId: "polistock-db",
-  storageBucket: "polistock-db.firebasestorage.app",
-  messagingSenderId: "581085910",
-  appId: "1:581085910:web:d64444fcfb8d93b3a4f777",
-  measurementId: "G-YNL3G59K6X",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);

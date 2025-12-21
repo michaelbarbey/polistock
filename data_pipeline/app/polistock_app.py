@@ -1,164 +1,134 @@
-# class Polistock App
+from services.google_civic_service import GoogleCivicDistrictValue
+from services.congress_service import CongressMemberProfile
+from services.capitol_trades_service import CapitolTrades
+from services.news_service import NewsArticles
+#from models import Official
 
-from services.capitol_trades_scraper import CapitolTradesScraper
-from utils.data_structures.stack import Stack
-from utils.data_structures.bst import TransactionBST
-from utils.algorithms.sorting import merge_sort
-from utils.txn_keys import key_date, key_value_bin, key_company, key_type, key_price
-from utils.table_formatting import calculate_column_widths, format_row_with_widths
-from config.sort_options import SORT_OPTIONS
+def run_polistock():
+    # this script can be stored as it's file function
+    # get's user input and district number returns an object with location info
 
-class Polistock:
-    def __init__(self, api_key=None):
-        # initialize scraper, news fetcher, and image finder
-        self.scraper       = CapitolTradesScraper()
-    #    self.news_fetcher  = NewsFetcher(api_key)
-    #    self.image_finder  = ImageFinder()
-        self.history = Stack()
+    user_address = [
+        "street ",
+        "city ",
+        "state ",
+        "zipcode "
+    ]
 
-    def run(self):
-        while True:
-            # prompt user
-            name = input("Enter the name of the official: ['exit' to quit | 'back' to previous] ").strip()
+    street = "121 highwood rd"
+    city = "east williston"
+    state_name = "new york"
+    state_code = "ny"
+    zipcode = "11596"
 
-            if name.lower() == 'back':
-                previous = self.history.pop()
-                if previous:
-                    print()
-                    print("Going back to previous official:")
-                    print()
-                    print(f"Name: {previous.name}")
-                    self.display_results(previous, news=[])
-                else:
-                    print("History is empty.\n")
-                continue
+    for request in user_address:
+        user_input = input(f"{request}")
+        if request == "street":
+            street = user_input
+        elif request == "city":
+            city = user_input
+        elif request == "state":
+            state_code = user_input
+        elif request == "zipcode":
+            zipcode = user_input
+    
+    # returns district object
+    google_civic = GoogleCivicDistrictValue()
+    district_profile = google_civic._fetch_ocd_id(street,city, state_name, zipcode)
 
-            if name.lower() == 'exit':
-                print("Thank you for using Polistock. Goodbye!")
-                break
+    # accesses Official class
+    congress_member = CongressMemberProfile()
+    congress_profile = congress_member.get_congress_member(district_profile)
 
-            # fetching data for the official
-            print(f"Fetching data for {name}...")
-            official = self.scraper.fetch_officials(name)
-            if not official:
-                print(f"No data found for '{name}'. Try again.")
-                continue
+    # initiates transactions profile
+    capitol_activity = CapitolTrades()
+    
+    # congress object
+    member_profile = congress_profile
 
-            print()  # blank line for readability
-            # pushing to official object onto the stack
-            self.history.push(official)
+    # returns a list of transaction objects
+    transaction_data = capitol_activity.scrape_politician(member_profile) # removed limits parameter, if fails call from settings
 
+    # capitol_transactions = {
+    #     "company" : "",
+    #     "ticker_symbol" : "",
+    #     "published_date" : "",
+    #     "traded_date" : "",
+    #     "transaction_type" : "",
+    #     "stock_price": ""
+    # }
 
-            # asking user how to sort
-            print("How would you like to sort the transactions?")
-            for option in SORT_OPTIONS:
-                label = SORT_OPTIONS[option][0]
-                print(f"{option}. {label}")
-            choice = input("Enter the number of your choice: ").strip()
-            if choice not in SORT_OPTIONS:
-                print("Invalid choice. Default sorting applied.")
-                choice = "1"  # default to sort by date
+    # FLAG: may be an issue with import 
+    transactions_list = transaction_data.transactions
 
-            if choice == "1":  # date sort
-                # builds a BST keyed on date
-                tree = TransactionBST(key_date)
-                for txn in official.transactions:
-                    tree.insert(txn)
-                # gets newest‑first by reverse inorder
-                official.transactions = tree.inorder(reverse=True)
+    # for items in transactions_list:
+    #     print(items.company)
+    # transactions = []
+    # for transaction in transaction_data:
+        # print(transactions)
+        # company = transaction.company
+        # ticker_symbol = transaction.ticker_symbol
+        # published_date = transaction.published_date
+        # traded_date = transaction.traded_date
+        # transaction_type=transaction.transaction_type
+        # stock_price = transaction.stock_price
+        # congress_profile.officials_transaction(
+        #     company=company,
+        #     ticker_symbol=ticker_symbol,
+        #     published_date=published_date,
+        #     traded_date=traded_date,
+        #     transaction_type=transaction_type,
+        #     stock_price=stock_price
+        # )
+    # print(congress_profile.fullname)
+    # print(congress_profile.transactions[1].stock_price)
 
-            else:
-                # falls back to generic merge_sort
-                lbl, key_fn, rev = SORT_OPTIONS[choice]
-                official.transactions = merge_sort(
-                    official.transactions,
-                    key_func = key_fn,
-                    reverse  = rev
-                )
+    # for items in congress_profile.transactions:
+    #     print(vars(items))
+        
+    profile_img = capitol_activity.fetch_headshot_url(congress_profile)
+    member_photo = congress_profile.photo_url
+    member_photo = profile_img
 
-            # unpacking chosen sort
-            lbl   = SORT_OPTIONS[choice][0]
-            key_fn = SORT_OPTIONS[choice][1]
-            rev    = SORT_OPTIONS[choice][2]
+    article_from = transactions_list[0].traded_date
+    article_to = transactions_list[0].published_date
+    company_query = transactions_list[0].company #filter
+    member_query = congress_profile.fullname
 
-            # perform the sort
-            official.transactions = merge_sort(
-                official.transactions,
-                key_func = key_fn,
-                reverse  = rev
-            )
-            print()
+    #relevant_news = NewsArticles(
+        # headline= None,
+        # article_start =article_from,
+        # article_end =article_to,
+        # query = company_query,
+        # filter_query = member_query,
+        # article_short = None,
+        # article_image= None
+        # )
 
-            print(f"Sorting transactions by {lbl}:")
-            print()
+    # if relevant)news raises errors may be the lack of parameters, uncomment above
+    relevant_news = NewsArticles()
+    member_news = relevant_news.execute(
+        article_begin_date =article_from,
+        article_end_date =article_to,
+        query = company_query,
+        filter_query = member_query,
+    )
+    top_stories = relevant_news.to_parse(member_news)
 
-            # fetching news articles & headshot
-            news      = None #self.news_fetcher.fetch_news(official.name)
-            photo_url = None #self.image_finder.fetch_headshot(official.name)
-            official.photo_url = None #photo_url
+    member_top_stories = congress_profile.officials_articles(
+        headline=top_stories[0],
+        article_start=article_from,
+        article_end=article_to,
+        filter_query= company_query,
+        query = member_query,
+        article_short= None,
+        article_image=top_stories[1]
+    )
 
-            # displays output
-            self.display_results(official, news=None)
-
-    def display_results(self, official, news):
-        print(f'Elected Official Information')
-#        self.display_image(official)
-
-        print()
-        print(f"Name: {official.name}")
-        print(f"{official.party} | {official.chamber}")
-        print(f"District: {official.district}, {official.state}")
-        print(f"Term: {official.term_start} to {official.term_end}")
-        print(f"Age: {official.age}")
-        print(f"Photo URL: {official.photo_url}")
-        print()
-
-        print("Transactions:")  # txn: transaction
-        print()
-
-        table_rows = []
-        if official.transactions:
-            for txn in official.transactions:
-                # build each cell as a string
-                date_str     = txn.date or ""
-                type_str     = txn.transaction_type or ""
-                symbol_str   = txn.stock_symbol or ""
-                company_str  = txn.company or ""
-                value_str    = "~$" + (txn.value or "")
-                price_str    = f"${txn.price:,.2f}" if isinstance(txn.price, (int, float)) else str(txn.price)
-                
-                table_rows.append([
-                    date_str,
-                    type_str,
-                    symbol_str,
-                    company_str,
-                    value_str,
-                    price_str
-                ])
-            
-            # compute column widths once
-            col_widths = calculate_column_widths(table_rows)
-
-            # now print header (optional)
-            print("•  " + format_row_with_widths(
-                ["Date", "Type", "Symbol", "Company", "Value", "Price"],
-                col_widths
-            ))
-            print("   " + "-" * (sum(col_widths) + (len(col_widths)-1)*5))
-
-            # print each transaction
-            for row in table_rows:
-                line = format_row_with_widths(row, col_widths)
-                print("•  " + line)
-        else:
-            print("No transactions found.")
-
-
-        print()
-        print("Recent News Articles:")
-        if news:
-            for article in news:
-                print(f"• {article['title']} ({article['source']})")
-                print(f"  {article['url']}")
-        else:
-            print("No recent news articles found.")
+    print(f"District: {congress_profile.districts[0].district_code}")
+    print(f"\nTransactions: {len(congress_profile.transactions)}")
+    print(f"Articles: {len(congress_profile.articles)}")
+    
+    to_server = congress_profile.to_dict()
+    print(to_server)
+    return to_server

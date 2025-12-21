@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import "./App.css";
 import Dashboard from "./Dashboard";
 
@@ -28,12 +23,9 @@ function LandingPage() {
       <div className="left-pane">
         <div className="form-card">
           <h1>Welcome Back</h1>
-          <p className="subtitle">
-            Sign in to continue to your dashboard.
-          </p>
+          <p className="subtitle">Sign in to continue to your dashboard.</p>
 
           <form onSubmit={handleSubmit}>
-
             <div className="field">
               <label htmlFor="state">State</label>
               <input
@@ -56,12 +48,7 @@ function LandingPage() {
 
             <div className="field">
               <label htmlFor="zip">Zip Code</label>
-              <input
-                id="zip"
-                name="zip"
-                type="text"
-                placeholder="e.g. 10001"
-              />
+              <input id="zip" name="zip" type="text" placeholder="e.g. 10001" />
             </div>
 
             <button type="submit" className="primary-btn">
@@ -73,10 +60,7 @@ function LandingPage() {
 
       {/* Right: Image */}
       <div className="right-pane">
-        <img
-          src="https://via.placeholder.com/800x800"
-          alt="App preview"
-        />
+        <img src="https://via.placeholder.com/800x800" alt="App preview" />
       </div>
     </div>
   );

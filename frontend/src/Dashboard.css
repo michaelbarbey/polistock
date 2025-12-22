@@ -159,13 +159,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: #ffffff
 }
 
 .dashboard-title {
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 4px;
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .dashboard-subtitle {
@@ -190,7 +191,7 @@ body {
 
 .primary-btn,
 .outline-btn {
-  border-radius: 999px;
+  border-radius: 50px;
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -211,17 +212,19 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
-  background-color: var(--accent);
+  background-color: var(--bg-elevated-soft);
   border: none;
-  border-radius: 8px;
+  border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .primary-btn:hover:not(:disabled) {
-  background-color: var(--accent-hover);
+  color: var(--bg-elevated-soft);
+  background-color: var(--bg-primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px var(--shadow);
+  border-color: var(--bg-secondary);
 }
 
 .primary-btn:active {
@@ -236,13 +239,13 @@ body {
 }
 
 .outline-btn {
-  padding: 10px 20px;
-  font-size: 14px;
+  padding: 14px 24px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  background-color: transparent;
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -283,7 +286,7 @@ body {
 .profile-avatar {
   width: 120px;
   height: 120px;
-  border-radius: 50%;
+  border-radius: 15%;
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   display: flex;
   align-items: center;
@@ -326,6 +329,8 @@ body {
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-secondary);
+  text-transform: capitalize;
+  justify-content: center;
 }
 
 /* ========== Section 2: Info Cards ========== */
@@ -379,6 +384,7 @@ body {
 .info-card-meta {
   font-size: 13px;
   color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 .table-container {
@@ -500,7 +506,7 @@ body {
 
   .dashboard-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 16px;
   }
 
@@ -515,5 +521,13 @@ body {
 
   .profile-avatar-wrapper {
     align-self: center;
+  }
+
+  .primary-btn {
+    align-self: center;
+  }
+
+  .outline-btn {
+    align-items: center;
   }
 }

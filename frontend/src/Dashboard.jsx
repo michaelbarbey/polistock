@@ -2,6 +2,25 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
+function formatDateForDisplay(dateStr) {
+  if (!dateStr) return "N/A";
+
+  // Try YYYYMMDD format (20251202)
+  try {
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    const date = new Date(year, month - 1, day);
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 /* ===============================
    Firestore ZIP lookup helper
    =============================== */
@@ -137,10 +156,41 @@ function Dashboard() {
       {/* Main content */}
       <div className="dashboard-main">
         {/* Header */}
-        <header className="dashboard-header">
+        <header
+          className="dashboard-header"
+          style={{
+            backgroundColor: official.party
+              ?.toLowerCase()
+              .includes("democratic")
+              ? "#002147"
+              : official.party?.toLowerCase().includes("republican")
+                ? "#BB133E"
+                : "var(--bg-card)",
+          }}
+        >
           <div>
-            <h1 className="dashboard-title">{official.fullname}</h1>
-            <p className="dashboard-subtitle">
+            <h1
+              className="dashboard-title"
+              tyle={{
+                color:
+                  official.party?.toLowerCase().includes("democratic") ||
+                  official.party?.toLowerCase().includes("republican")
+                    ? "#ffffff"
+                    : "var(--text-primary)",
+              }}
+            >
+              {official.fullname}
+            </h1>
+            <p
+              className="dashboard-subtitle"
+              style={{
+                color:
+                  official.party?.toLowerCase().includes("democratic") ||
+                  official.party?.toLowerCase().includes("republican")
+                    ? "rgba(255, 255, 255, 0.85)"
+                    : "var(--text-secondary)",
+              }}
+            >
               {official.party} • {official.chamber} • District{" "}
               {district?.district_code}
             </p>
@@ -148,7 +198,9 @@ function Dashboard() {
 
           <div className="dashboard-header-actions">
             <button className="outline-btn">Export</button>
-            <button className="primary-btn">Search</button>
+            <button className="primary-btn" onClick={() => navigate("/")}>
+              Search
+            </button>
           </div>
         </header>
 
@@ -166,7 +218,7 @@ function Dashboard() {
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      borderRadius: "50%",
+                      borderRadius: "15%",
                     }}
                   />
                 ) : (
@@ -269,8 +321,8 @@ function Dashboard() {
                           </span>
                         </td>
                         <td>{txn.stock_price}</td>
-                        <td>{txn.traded_date}</td>
-                        <td>{txn.published_date}</td>
+                        <td>{formatDateForDisplay(txn.traded_date)}</td>
+                        <td>{formatDateForDisplay(txn.published_date)}</td>
                       </tr>
                     ))}
                   </tbody>

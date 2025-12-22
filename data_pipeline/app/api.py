@@ -248,3 +248,5 @@ def get_transactions(bioguide_id):
 if __name__ == '__main__':
     # development server
     app.run(debug=True, host='0.0.0.0', port=5000)
+# For Elastic Beanstalk
+application = app

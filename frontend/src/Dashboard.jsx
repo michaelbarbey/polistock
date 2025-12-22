@@ -1,138 +1,372 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
+/* ===============================
+   Firestore ZIP lookup helper
+   =============================== */
+/*
+async function fetchZipLookup(zip) {
+  const projectId = import.meta.env.VITE_FIRESTORE_PROJECT_ID;
+  const apiKey = import.meta.env.VITE_FIRESTORE_API_KEY;
+  const col = import.meta.env.VITE_FIRESTORE_ZIP_COLLECTION || "zip_lookup";
+
+  if (!projectId || !apiKey) throw new Error("Missing Firestore env vars");
+
+  const url =
+    `https://firestore.googleapis.com/v1/projects/${projectId}` +
+    `/databases/(default)/documents/${col}/${zip}?key=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("ZIP not found");
+  const doc = await res.json();
+
+  const f = doc?.fields || {};
+  const s = (k) => f?.[k]?.stringValue ?? "";
+
+  return {
+    zip: s("zip"),
+    fullName: s("fullName"),
+    state: s("state"),
+    party: s("party"),
+    stateDistrictRaw: s("stateDistrictRaw"),
+    bioguideId: s("bioguideId"),
+  };
+}/*
+
+/* ===============================
+   Dashboard Component
+   =============================== */
+/*
+const [zip, setZip] = useState("");
+const [qsLoading, setQsLoading] = useState(false);
+const [qsError, setQsError] = useState("");
+const [qsResult, setQsResult] = useState(null);
+
+async function handleQuickSearch(e) {
+  e.preventDefault();
+  setQsError("");
+  setQsResult(null);
+
+  const z = zip.trim();
+  if (!z) {
+    setQsError("Enter a ZIP code.");
+    return;
+  }
+
+  setQsLoading(true);
+  try {
+    // IMPORTANT: collection name must match yours exactly
+    const membersRef = collection(db, "members");
+
+    // zipCode stored as STRING in Firestore? then compare to string z
+    const q = query(membersRef, where("zipCode", "==", z), limit(1));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      setQsError("No representative found for that ZIP.");
+      return;
+    }
+
+    const data = snap.docs[0].data();
+
+    // Display only what you want
+    setQsResult({
+      fullName: data.fullName,
+      state: data.state,
+      party: data.party,
+      stateDistrictRaw: data.stateDistrictRaw,
+    });
+  } catch (err) {
+    setQsError("Quick Search failed.");
+  } finally {
+    setQsLoading(false);
+  }
+}
+*/
+
 function Dashboard() {
+  /* 🔹 NEW: Quick Search state */
+  const location = useLocation();
+  const navigate = useNavigate();
+  const official = location.state?.official;
+
+  // edge case
+  if (!official) {
+    return (
+      <div
+        className="dashboard"
+        style={{ padding: "40px", textAlign: "center" }}
+      >
+        <h2>No data available</h2>
+        <p>Please search for a representative first.</p>
+        <button className="primary-btn" onClick={() => navigate("/")}>
+          Go Back
+        </button>
+      </div>
+    );
+  }
+  const district = official.districts?.[0];
+  const transactions = official.transactions || [];
+  const articles = official.articles || [];
+
   return (
     <div className="dashboard">
       {/* Sidebar */}
       <aside className="dashboard-sidebar">
         <div className="dashboard-logo">
           <span className="logo-dot" />
-          <span className="logo-text">MyApp</span>
+          <span className="logo-text">polistock</span>
         </div>
 
         <nav className="dashboard-nav">
           <button className="nav-item nav-item-active">Overview</button>
-          <button className="nav-item">Users</button>
-          <button className="nav-item">Reports</button>
-          <button className="nav-item">Settings</button>
+          <button className="nav-item">Transactions</button>
+          <button className="nav-item">News</button>
+          <button className="nav-item" onClick={() => navigate("/")}>
+            Search
+          </button>
         </nav>
 
         <div className="dashboard-sidebar-footer">
-          <span className="sidebar-footer-text">Signed in as</span>
-          <span className="sidebar-footer-name">Demo User</span>
+          <span className="sidebar-footer-text">Viewing</span>
+          <span className="sidebar-footer-name">{official.fullname}</span>
         </div>
       </aside>
 
       {/* Main content */}
       <div className="dashboard-main">
-        {/* Top header */}
+        {/* Header */}
         <header className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">Dashboard</h1>
+            <h1 className="dashboard-title">{official.fullname}</h1>
             <p className="dashboard-subtitle">
-              Welcome back. Here’s a quick snapshot of your profile and key info.
+              {official.party} • {official.chamber} • District{" "}
+              {district?.district_code}
             </p>
           </div>
 
           <div className="dashboard-header-actions">
             <button className="outline-btn">Export</button>
-            <button className="primary-btn">New Entry</button>
+            <button className="primary-btn">Search</button>
           </div>
         </header>
 
         {/* Main content area */}
         <main className="dashboard-content">
-          {/* SECTION 1: Profile layout */}
+          {/* Profile Section */}
           <section className="profile-section">
             <div className="profile-avatar-wrapper">
               <div className="profile-avatar">
-                {/* You can replace this with an <img /> later */}
-                <span className="profile-initials">JS</span>
+                {official.photo_url ? (
+                  <img
+                    src={official.photo_url}
+                    alt={official.fullname}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                    }}
+                  />
+                ) : (
+                  <span className="profile-initials">
+                    {official.firstname?.[0]}
+                    {official.lastname?.[0]}
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="profile-text">
-              <h2 className="profile-name">Demo User</h2>
-              <p className="profile-title">Community Program Participant</p>
+              <h2 className="profile-name">{official.fullname}</h2>
+              <p className="profile-title">
+                {official.party} • {official.chamber}
+              </p>
               <p className="profile-description">
-                This area can be used to briefly describe the user, their role,
-                or the purpose of this dashboard. Later, we can populate this with
-                dynamic data from your API.
+                Representing {district?.city}, {district?.state_name} (District{" "}
+                {district?.district_code})
+                <br />
+                Term: {official.term_start} to {official.term_end}
+                <br />
+                Bioguide ID: {official.bioguide_id}
               </p>
             </div>
           </section>
 
-          {/* SECTION 2: Info cards grid */}
+          {/* Transactional Data */}
           <section className="info-section">
-            <h2 className="info-section-title">Key Information</h2>
+            <h2 className="info-section-title">Overview</h2>
 
             <div className="info-grid">
-              {/* Card 1 */}
               <article className="info-card">
-                <h3 className="info-card-title">Program Status</h3>
-                <p className="info-card-body">
-                  Currently enrolled in the Spring 2025 cohort with 3 sessions
-                  completed and 2 upcoming.
+                <h3 className="info-card-title">Total Transactions</h3>
+                <p
+                  className="info-card-body"
+                  style={{ fontSize: "32px", fontWeight: "bold" }}
+                >
+                  {transactions.length}
                 </p>
-                <p className="info-card-meta">Last updated: Today</p>
+                <p className="info-card-meta">Tracked stock trades</p>
               </article>
 
-              {/* Card 2 */}
               <article className="info-card">
-                <h3 className="info-card-title">Location Details</h3>
+                <h3 className="info-card-title">District</h3>
                 <p className="info-card-body">
-                  Based in New York, NY (10001). This information can later be
-                  synced from your profile or submission data.
+                  {district?.state_code}-{district?.district_code}
                 </p>
-                <p className="info-card-meta">Source: Profile form</p>
+                <p className="info-card-meta">
+                  {district?.city}, {district?.state_name}
+                </p>
               </article>
 
-              {/* Card 3 */}
               <article className="info-card">
-                <h3 className="info-card-title">Recent Activity</h3>
-                <p className="info-card-body">
-                  Submitted an intake form, updated contact details, and viewed
-                  the resource library this week.
-                </p>
-                <p className="info-card-meta">Activity window: Last 7 days</p>
+                <h3 className="info-card-title">Party</h3>
+                <p className="info-card-body">{official.party}</p>
+                <p className="info-card-meta">{official.chamber}</p>
               </article>
 
-              {/* Card 4 */}
               <article className="info-card">
-                <h3 className="info-card-title">Support Contact</h3>
-                <p className="info-card-body">
-                  Assigned to Case Manager: Jordan Lee. Contact via email or
-                  in-app messaging for assistance.
+                <h3 className="info-card-title">News Articles</h3>
+                <p
+                  className="info-card-body"
+                  style={{ fontSize: "32px", fontWeight: "bold" }}
+                >
+                  {articles.length}
                 </p>
-                <p className="info-card-meta">Response time: ~24 hours</p>
-              </article>
-
-              {/* Card 5 */}
-              <article className="info-card">
-                <h3 className="info-card-title">Upcoming Milestones</h3>
-                <p className="info-card-body">
-                  Orientation follow-up, mid-program check-in, and final
-                  reflection survey are scheduled.
-                </p>
-                <p className="info-card-meta">Next milestone: In 5 days</p>
-              </article>
-
-              {/* Card 6 */}
-              <article className="info-card">
-                <h3 className="info-card-title">Resources Access</h3>
-                <p className="info-card-body">
-                  Access granted to learning modules, downloadable guides, and
-                  community events calendar.
-                </p>
-                <p className="info-card-meta">Access level: Standard</p>
+                <p className="info-card-meta">Related news</p>
               </article>
             </div>
           </section>
+
+          {transactions.length > 0 && (
+            <section className="info-section">
+              <h2 className="info-section-title">Recent Transactions</h2>
+
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    backgroundColor: "white",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        backgroundColor: "#f8f9fa",
+                        borderBottom: "2px solid #dee2e6",
+                      }}
+                    >
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Company
+                      </th>
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Ticker
+                      </th>
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Type
+                      </th>
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Amount
+                      </th>
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Traded Date
+                      </th>
+                      <th style={{ padding: "16px", textAlign: "left" }}>
+                        Published
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((txn, idx) => (
+                      <tr
+                        key={idx}
+                        style={{
+                          borderBottom: "1px solid #dee2e6",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#f8f9fa")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "white")
+                        }
+                      >
+                        <td style={{ padding: "16px" }}>{txn.company}</td>
+                        <td style={{ padding: "16px" }}>
+                          {txn.ticker_symbol || "N/A"}
+                        </td>
+                        <td style={{ padding: "16px" }}>
+                          <span
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              fontWeight: "bold",
+                              backgroundColor:
+                                txn.transaction_type?.toLowerCase() === "buy"
+                                  ? "#d4edda"
+                                  : "#f8d7da",
+                              color:
+                                txn.transaction_type?.toLowerCase() === "buy"
+                                  ? "#155724"
+                                  : "#721c24",
+                            }}
+                          >
+                            {txn.transaction_type}
+                          </span>
+                        </td>
+                        <td style={{ padding: "16px" }}>{txn.stock_price}</td>
+                        <td style={{ padding: "16px" }}>{txn.traded_date}</td>
+                        <td style={{ padding: "16px" }}>
+                          {txn.published_date}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {/* News Articles */}
+
+          {articles.length > 0 && (
+            <section className="info-section">
+              <h2 className="info-section-title">Related News</h2>
+
+              <div className="info-grid">
+                {articles.map((article, idx) => (
+                  <article key={idx} className="info-card">
+                    {article.article_image && (
+                      <img
+                        src={article.article_image}
+                        alt={article.headline}
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          marginBottom: "12px",
+                        }}
+                      />
+                    )}
+                    <h3 className="info-card-title">{article.headline}</h3>
+                    <p className="info-card-body">{article.article_short}</p>
+                    <p className="info-card-meta">
+                      {article.article_start} to {article.article_end}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
         </main>
       </div>
     </div>
   );
 }
-
 export default Dashboard;

@@ -239,91 +239,38 @@ function Dashboard() {
             </div>
           </section>
 
+          {/* Transactions Table */}
           {transactions.length > 0 && (
             <section className="info-section">
               <h2 className="info-section-title">Recent Transactions</h2>
 
-              <div style={{ overflowX: "auto" }}>
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    backgroundColor: "white",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                  }}
-                >
+              <div className="table-container">
+                <table className="transactions-table">
                   <thead>
-                    <tr
-                      style={{
-                        backgroundColor: "#f8f9fa",
-                        borderBottom: "2px solid #dee2e6",
-                      }}
-                    >
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Company
-                      </th>
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Ticker
-                      </th>
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Type
-                      </th>
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Amount
-                      </th>
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Traded Date
-                      </th>
-                      <th style={{ padding: "16px", textAlign: "left" }}>
-                        Published
-                      </th>
+                    <tr>
+                      <th>Company</th>
+                      <th>Ticker</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Traded Date</th>
+                      <th>Published</th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.map((txn, idx) => (
-                      <tr
-                        key={idx}
-                        style={{
-                          borderBottom: "1px solid #dee2e6",
-                          transition: "background-color 0.2s",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#f8f9fa")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor = "white")
-                        }
-                      >
-                        <td style={{ padding: "16px" }}>{txn.company}</td>
-                        <td style={{ padding: "16px" }}>
-                          {txn.ticker_symbol || "N/A"}
-                        </td>
-                        <td style={{ padding: "16px" }}>
+                      <tr key={idx}>
+                        <td>{txn.company}</td>
+                        <td>{txn.ticker_symbol || "N/A"}</td>
+                        <td>
                           <span
-                            style={{
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              fontWeight: "bold",
-                              backgroundColor:
-                                txn.transaction_type?.toLowerCase() === "buy"
-                                  ? "#d4edda"
-                                  : "#f8d7da",
-                              color:
-                                txn.transaction_type?.toLowerCase() === "buy"
-                                  ? "#155724"
-                                  : "#721c24",
-                            }}
+                            className={`transaction-badge ${txn.transaction_type?.toLowerCase()}`}
                           >
                             {txn.transaction_type}
                           </span>
                         </td>
-                        <td style={{ padding: "16px" }}>{txn.stock_price}</td>
-                        <td style={{ padding: "16px" }}>{txn.traded_date}</td>
-                        <td style={{ padding: "16px" }}>
-                          {txn.published_date}
-                        </td>
+                        <td>{txn.stock_price}</td>
+                        <td>{txn.traded_date}</td>
+                        <td>{txn.published_date}</td>
                       </tr>
                     ))}
                   </tbody>

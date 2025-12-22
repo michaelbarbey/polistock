@@ -246,7 +246,8 @@ def get_transactions(bioguide_id):
         }), 500
         
 if __name__ == '__main__':
-    # development server
-    app.run(debug=True, host='0.0.0.0', port=5000)
-# For Elastic Beanstalk
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
 application = app

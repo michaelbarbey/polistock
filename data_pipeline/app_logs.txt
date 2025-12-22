@@ -1,0 +1,4 @@
+Retrieving logs...
+Logs were saved to /Users/michaelbarbey/Documents/Baruch/CIS4160/polistock-project/data_pipeline/.elasticbeanstalk/logs/251222_152345
+Logs were saved to /Users/michaelbarbey/Documents/Baruch/CIS4160/polistock-project/data_pipeline/.elasticbeanstalk/logs/251222_152345
+Updated symlink at /Users/michaelbarbey/Documents/Baruch/CIS4160/polistock-project/data_pipeline/.elasticbeanstalk/logs/latest

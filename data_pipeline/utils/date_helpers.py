@@ -64,3 +64,31 @@ def format_date(date_str, input_format="%d %b %Y", output_format="%Y%m%d"):
         return date_obj.strftime(output_format)
     except ValueError:
         return date_str
+    
+def format_date_for_display(date_str):
+    """
+    Convert various date formats to human-readable format.
+    
+    Args:
+        date_str (str): Date in format like "20251202" or "2 Dec 2025"
+        
+    Returns:
+        str: Formatted date like "Dec 2, 2025"
+    """
+    if not date_str:
+        return "N/A"
+    
+    try:
+        date_obj = datetime.strptime(date_str, "%Y%m%d")
+        return date_obj.strftime("%b %d, %Y")
+    except ValueError:
+        pass
+    
+    try:
+        date_obj = datetime.strptime(date_str, "%d %b %Y")
+        return date_obj.strftime("%b %d, %Y")
+    except ValueError:
+        pass
+    
+    # Return as-is if we can't parse it
+    return date_str

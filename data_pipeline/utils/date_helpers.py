@@ -46,3 +46,21 @@ def fetch_term_dates(bioguide_id):
                 return start, end
                 
     return {"term_start": None, "term_end": None}  # returns None if no match is found
+
+def format_date(date_str, input_format="%d %b %Y", output_format="%Y%m%d"):
+    """
+    Convert date from one format to another.
+    
+    Args:
+        date_str (str): Date string to convert (e.g., "2 Dec 2025")
+        input_format (str): Format of input date
+        output_format (str): Desired output format
+        
+    Returns:
+        str: Formatted date string (e.g., "20251202")
+    """
+    try:
+        date_obj = datetime.strptime(date_str, input_format)
+        return date_obj.strftime(output_format)
+    except ValueError:
+        return date_str

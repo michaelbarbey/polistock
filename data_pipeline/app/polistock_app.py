@@ -15,12 +15,6 @@ def run_polistock():
         "zipcode "
     ]
 
-    street = "121 highwood rd"
-    city = "east williston"
-    state_name = "new york"
-    state_code = "ny"
-    zipcode = "11596"
-
     for request in user_address:
         user_input = input(f"{request}")
         if request == "street":
@@ -28,7 +22,7 @@ def run_polistock():
         elif request == "city":
             city = user_input
         elif request == "state":
-            state_code = user_input
+            state_name = user_input
         elif request == "zipcode":
             zipcode = user_input
     
@@ -125,10 +119,5 @@ def run_polistock():
         article_image=top_stories[1]
     )
 
-    print(f"District: {congress_profile.districts[0].district_code}")
-    print(f"\nTransactions: {len(congress_profile.transactions)}")
-    print(f"Articles: {len(congress_profile.articles)}")
-    
     to_server = congress_profile.to_dict()
-    print(to_server)
     return to_server

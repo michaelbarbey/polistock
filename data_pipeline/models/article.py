@@ -17,3 +17,11 @@ class Article:
         self.query = query
         self.article_short = article_short
         self.article_image = article_image
+        
+    # for debuuging
+    def __repr__(self):
+        return f"Article(headline={self.headline!r})"
+    
+    # quick output
+    def __str__(self):
+        return f"{self.headline} ({self.article_start} to {self.article_end})"

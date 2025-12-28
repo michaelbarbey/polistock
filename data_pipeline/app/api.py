@@ -10,10 +10,14 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
-            "http://localhost:5173",  # Local development
-            "http://localhost:3000",  # Alternative local port
-            "https://d2nwhjh2rxmyof.cloudfront.net"  # Replace with your actual CloudFront URL
-        ]
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://d2nwhjh2rxmyof.cloudfront.net",
+            "https://polistock.cis4160.com",
+            "http://polistock.cis4160.com"
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
     }
 })
 

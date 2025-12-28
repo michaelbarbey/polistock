@@ -221,7 +221,7 @@ body {
 
 .primary-btn:hover:not(:disabled) {
   color: var(--bg-elevated-soft);
-  background-color: var(--bg-primary);
+  background-color: var(--text-main);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px var(--shadow);
   border-color: var(--bg-secondary);
@@ -286,12 +286,15 @@ body {
 .profile-avatar {
   width: 120px;
   height: 120px;
-  border-radius: 15%;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  scale: 120%;
+  margin-left: 20%;
+  margin-top: 15%;
 }
 
 /* If you later switch to an image:

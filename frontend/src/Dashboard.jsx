@@ -1,122 +1,78 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
 function formatDateForDisplay(dateStr) {
   if (!dateStr) return "N/A";
 
-  // Try YYYYMMDD format (20251202)
+  // date conversion
   try {
-    const year = dateStr.substring(0, 4);
-    const month = dateStr.substring(4, 6);
-    const day = dateStr.substring(6, 8);
-    const date = new Date(year, month - 1, day);
+    if (dateStr.includes("-")) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
 
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
+    if (dateStr.length === 4) {
+      return dateStr;
+    }
+
+    if (dateStr.length === 8) {
+      const year = dateStr.substring(0, 4);
+      const month = dateStr.substring(4, 6);
+      const day = dateStr.substring(6, 8);
+      const date = new Date(year, month - 1, day);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    return dateStr;
+  } catch (error) {
+    console.error("Error formatting date:", dateStr, error);
     return dateStr;
   }
 }
-/* ===============================
-   Firestore ZIP lookup helper
-   =============================== */
-/*
-async function fetchZipLookup(zip) {
-  const projectId = import.meta.env.VITE_FIRESTORE_PROJECT_ID;
-  const apiKey = import.meta.env.VITE_FIRESTORE_API_KEY;
-  const col = import.meta.env.VITE_FIRESTORE_ZIP_COLLECTION || "zip_lookup";
-
-  if (!projectId || !apiKey) throw new Error("Missing Firestore env vars");
-
-  const url =
-    `https://firestore.googleapis.com/v1/projects/${projectId}` +
-    `/databases/(default)/documents/${col}/${zip}?key=${apiKey}`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("ZIP not found");
-  const doc = await res.json();
-
-  const f = doc?.fields || {};
-  const s = (k) => f?.[k]?.stringValue ?? "";
-
-  return {
-    zip: s("zip"),
-    fullName: s("fullName"),
-    state: s("state"),
-    party: s("party"),
-    stateDistrictRaw: s("stateDistrictRaw"),
-    bioguideId: s("bioguideId"),
-  };
-}/*
-
-/* ===============================
-   Dashboard Component
-   =============================== */
-/*
-const [zip, setZip] = useState("");
-const [qsLoading, setQsLoading] = useState(false);
-const [qsError, setQsError] = useState("");
-const [qsResult, setQsResult] = useState(null);
-
-async function handleQuickSearch(e) {
-  e.preventDefault();
-  setQsError("");
-  setQsResult(null);
-
-  const z = zip.trim();
-  if (!z) {
-    setQsError("Enter a ZIP code.");
-    return;
-  }
-
-  setQsLoading(true);
-  try {
-    // IMPORTANT: collection name must match yours exactly
-    const membersRef = collection(db, "members");
-
-    // zipCode stored as STRING in Firestore? then compare to string z
-    const q = query(membersRef, where("zipCode", "==", z), limit(1));
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      setQsError("No representative found for that ZIP.");
-      return;
-    }
-
-    const data = snap.docs[0].data();
-
-    // Display only what you want
-    setQsResult({
-      fullName: data.fullName,
-      state: data.state,
-      party: data.party,
-      stateDistrictRaw: data.stateDistrictRaw,
-    });
-  } catch (err) {
-    setQsError("Quick Search failed.");
-  } finally {
-    setQsLoading(false);
-  }
-}
-*/
 
 function Dashboard() {
-  /* 🔹 NEW: Quick Search state */
   const location = useLocation();
   const navigate = useNavigate();
   const official = location.state?.official;
+  const [navbarHidden, setNavbarHidden] = useState(false);
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
 
-  // edge case
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset;
+
+      // shows navbar at the top of page
+      if (currentScrollPos === 0) {
+        setNavbarHidden(false);
+        setPrevScrollPos(currentScrollPos);
+        return;
+      }
+
+      // shows navbar when scrolling up, hides when scrolling down
+      if (prevScrollPos > currentScrollPos) {
+        setNavbarHidden(false);
+      } else {
+        setNavbarHidden(true);
+      }
+      setPrevScrollPos(currentScrollPos);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [prevScrollPos]);
+
   if (!official) {
     return (
-      <div
-        className="dashboard"
-        style={{ padding: "40px", textAlign: "center" }}
-      >
+      <div className="dashboard-no-data">
         <h2>No data available</h2>
         <p>Please search for a representative first.</p>
         <button className="primary-btn" onClick={() => navigate("/")}>
@@ -125,85 +81,111 @@ function Dashboard() {
       </div>
     );
   }
+
   const district = official.districts?.[0];
   const transactions = official.transactions || [];
+  // const articles = official.articles || [];
+
+  // Somewhere near the top of your component where you get articles
   const articles = official.articles || [];
+  console.log("First article data:", articles[0]);
 
   return (
     <div className="dashboard">
-      {/* Sidebar */}
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-logo">
-          <span className="logo-dot" />
-          <span className="logo-text">polistock</span>
-        </div>
+      {/* Top Navbar */}
+      <nav
+        className={`dashboard-navbar ${navbarHidden ? "hidden" : ""}`}
+        style={{
+          backgroundColor: official.party?.toLowerCase().includes("democratic")
+            ? "#002147"
+            : official.party?.toLowerCase().includes("republican")
+              ? "#BB133E"
+              : "var(--bg-card)",
+        }}
+      >
+        <div className="navbar-container">
+          <div className="navbar-left">
+            <div className="navbar-logo">
+              <img
+                src="/logo.jpeg"
+                alt="polidemos logo"
+                style={{
+                  height: "30px",
+                  marginRight: "8px",
+                  borderRadius: "8px",
+                }}
+              />
+              <span className="logo-text">polidemos</span>
+            </div>
 
-        <nav className="dashboard-nav">
-          <button className="nav-item nav-item-active">Overview</button>
-          <button className="nav-item">Transactions</button>
-          <button className="nav-item">News</button>
-          <button className="nav-item" onClick={() => navigate("/")}>
-            Search
-          </button>
-        </nav>
-
-        <div className="dashboard-sidebar-footer">
-          <span className="sidebar-footer-text">Viewing</span>
-          <span className="sidebar-footer-name">{official.fullname}</span>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="dashboard-main">
-        {/* Header */}
-        <header
-          className="dashboard-header"
-          style={{
-            backgroundColor: official.party
-              ?.toLowerCase()
-              .includes("democratic")
-              ? "#002147"
-              : official.party?.toLowerCase().includes("republican")
-                ? "#BB133E"
-                : "var(--bg-card)",
-          }}
-        >
-          <div>
-            <h1
-              className="dashboard-title"
-              tyle={{
-                color:
-                  official.party?.toLowerCase().includes("democratic") ||
-                  official.party?.toLowerCase().includes("republican")
-                    ? "#ffffff"
-                    : "var(--text-primary)",
-              }}
-            >
-              {official.fullname}
-            </h1>
-            <p
-              className="dashboard-subtitle"
+            <div className="navbar-title">
+              <h1
+                style={{
+                  color:
+                    official.party?.toLowerCase().includes("democratic") ||
+                    official.party?.toLowerCase().includes("republican")
+                      ? "#ffffff"
+                      : "var(--text-primary)",
+                }}
+              >
+                {official.fullname}
+              </h1>
+              <p
+                style={{
+                  color:
+                    official.party?.toLowerCase().includes("democratic") ||
+                    official.party?.toLowerCase().includes("republican")
+                      ? "rgba(255, 255, 255, 0.85)"
+                      : "var(--text-secondary)",
+                }}
+              >
+                {official.party} • {official.chamber} • District{" "}
+                {district?.district_code}
+              </p>
+            </div>
+          </div>
+          <div className="navbar-actions">
+            {/* <button
+              className="outline-btn"
               style={{
                 color:
                   official.party?.toLowerCase().includes("democratic") ||
                   official.party?.toLowerCase().includes("republican")
-                    ? "rgba(255, 255, 255, 0.85)"
-                    : "var(--text-secondary)",
+                    ? "#FFFFFF"
+                    : "var(--text-primary)",
+                borderColor:
+                  official.party?.toLowerCase().includes("democratic") ||
+                  official.party?.toLowerCase().includes("republican")
+                    ? "rgba(255, 255, 255, 0.5)"
+                    : "var(--border-color)",
               }}
             >
-              {official.party} • {official.chamber} • District{" "}
-              {district?.district_code}
-            </p>
-          </div>
-
-          <div className="dashboard-header-actions">
-            <button className="outline-btn">Export</button>
-            <button className="primary-btn" onClick={() => navigate("/")}>
-              Search
+              Export Data
+            </button> */}
+            <button
+              className="primary-btn"
+              onClick={() => navigate("/")}
+              style={{
+                backgroundColor:
+                  official.party?.toLowerCase().includes("democratic") ||
+                  official.party?.toLowerCase().includes("republican")
+                    ? "#ffffff"
+                    : "var(--accent)",
+                color: official.party?.toLowerCase().includes("democratic")
+                  ? "#002147"
+                  : official.party?.toLowerCase().includes("republican")
+                    ? "#FF3A2F"
+                    : "#ffffff",
+              }}
+            >
+              New Search
             </button>
           </div>
-        </header>
+        </div>
+      </nav>
 
+      {/* Main content */}
+      <div className="dashboard-main">
         {/* Main content area */}
         <main className="dashboard-content">
           {/* Profile Section */}
@@ -217,8 +199,15 @@ function Dashboard() {
                     style={{
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "15%",
+                      objectFit: "scale-down",
+                      borderWidth: "10px",
+                      backgroundColor: official.party
+                        ?.toLowerCase()
+                        .includes("democratic")
+                        ? "#2254B5"
+                        : official.party?.toLowerCase().includes("republican")
+                          ? "#952224"
+                          : "var(--bg-card)",
                     }}
                   />
                 ) : (
@@ -231,7 +220,29 @@ function Dashboard() {
             </div>
 
             <div className="profile-text">
-              <h2 className="profile-name">{official.fullname}</h2>
+              <h2>
+                <a
+                  href={official.contact?.website}
+                  className="profile-name"
+                  style={{
+                    color:
+                      official.party?.toLowerCase().includes("democratic") ||
+                      official.party?.toLowerCase().includes("republican")
+                        ? "var(--text-primary)"
+                        : "var(--text-primary)",
+                    // to include in next update: adjust hover color
+                    onHover: official.party
+                      ?.toLowerCase()
+                      .includes("democratic")
+                      ? "#002147"
+                      : official.party?.toLowerCase().includes("republican")
+                        ? "#BB133E"
+                        : "var(--bg-card)",
+                  }}
+                >
+                  {official.fullname}
+                </a>
+              </h2>
               <p className="profile-title">
                 {official.party} • {official.chamber}
               </p>
@@ -239,9 +250,14 @@ function Dashboard() {
                 Representing {district?.city}, {district?.state_name} (District{" "}
                 {district?.district_code})
                 <br />
-                Term: {official.term_start} to {official.term_end}
+                Term: {formatDateForDisplay(official.term_start)} to{" "}
+                {formatDateForDisplay(official.term_end)}
                 <br />
                 Bioguide ID: {official.bioguide_id}
+                <br />
+                Phone Number: {official.contact?.phone_number || "N/A"}
+                <br />
+                Office Address: {official.contact?.office_address || "N/A"}
               </p>
             </div>
           </section>
@@ -331,35 +347,78 @@ function Dashboard() {
             </section>
           )}
 
-          {/* News Articles */}
-
+          {/* News Articles Section */}
           {articles.length > 0 && (
-            <section className="info-section">
+            <section className="info-section articles-section">
               <h2 className="info-section-title">Related News</h2>
-
-              <div className="info-grid">
-                {articles.map((article, idx) => (
-                  <article key={idx} className="info-card">
-                    {article.article_image && (
-                      <img
-                        src={article.article_image}
-                        alt={article.headline}
-                        style={{
-                          width: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                          marginBottom: "12px",
-                        }}
-                      />
-                    )}
-                    <h3 className="info-card-title">{article.headline}</h3>
-                    <p className="info-card-body">{article.article_short}</p>
-                    <p className="info-card-meta">
-                      {article.article_start} to {article.article_end}
-                    </p>
-                  </article>
+              {/* desktop: grid of full-width image cards */}
+              <div className="articles-grid desktop-only">
+                {articles.map((article, index) => (
+                  <a
+                    key={index}
+                    href={article.article_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="article-card-full"
+                    onClick={(e) => {
+                      console.log("Article clicked:", article.article_link);
+                    }}
+                    style={{
+                      backgroundImage: article.article_image
+                        ? `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(${article.article_image})`
+                        : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    }}
+                  >
+                    <div className="article-overlay">
+                      <h3 className="article-headline">{article.headline}</h3>
+                      <p className="article-author">{article.author}</p>
+                      <span className="article-read-more">Read Article →</span>
+                    </div>
+                  </a>
                 ))}
+              </div>
+
+              {/* Mobile: Carousel */}
+              <div className="articles-carousel mobile-only">
+                <div className="carousel-container">
+                  {articles.map((article, index) => (
+                    <a
+                      key={index}
+                      href={article.article_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="article-card-mobile"
+                      onClick={(e) => {
+                        console.log("Article clicked:", article.article_link);
+                      }}
+                    >
+                      {article.article_image && (
+                        <div
+                          className="article-image-mobile"
+                          style={{
+                            backgroundImage: `url(${article.article_image})`,
+                          }}
+                        />
+                      )}
+                      <div className="article-content-mobile">
+                        <h3 className="article-headline-mobile">
+                          {article.headline}
+                        </h3>
+                        <p className="article-snippet-mobile">
+                          {article.article_short}
+                        </p>
+                        <div className="article-meta-mobile">
+                          <span className="article-author-mobile">
+                            {article.author}
+                          </span>
+                          <span className="article-date-mobile">
+                            {formatDateForDisplay(article.article_start)}
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             </section>
           )}
@@ -368,4 +427,5 @@ function Dashboard() {
     </div>
   );
 }
+
 export default Dashboard;

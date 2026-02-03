@@ -36,6 +36,7 @@ class Official: # Transaction may not need to be passed in tbis structure
         self.districts = []
         self.transactions = []
         self.articles = []
+        self.contact = None
         
     def officials_district(self, district):
         
@@ -74,6 +75,7 @@ class Official: # Transaction may not need to be passed in tbis structure
             "term_start": self.term_start,
             "term_end": self.term_end,
             "photo_url": self.photo_url,
+            "contact": self.contact.to_dict() if self.contact else None,
             "districts": [
                 {
                     "district_code": d.district_code,
@@ -100,10 +102,12 @@ class Official: # Transaction may not need to be passed in tbis structure
                     "headline": a.headline,
                     "article_start": a.article_start,
                     "article_end": a.article_end,
-                    "article_image": a.article_image
+                    "article_image": a.article_image,
+                    "article_link": a.article_link,
+                    "author": a.author
                 }
                 for a in self.articles
-            ]
+            ],
         }
         
     # utility methods
@@ -119,7 +123,7 @@ class Official: # Transaction may not need to be passed in tbis structure
     
     # quick object details
     def print_summary(self):
-        print(f"OFFICIAL: {self.fullname}")
+        print(f"Official: {self.fullname}")
         print(f"Party: {self.party}")
         print(f"Chamber: {self.chamber}")
         print(f"Bioguide ID: {self.bioguide_id}")

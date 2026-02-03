@@ -28,8 +28,7 @@ CAPITOL_TRADES_URL = f"https://www.capitoltrades.com/politicians/"
 #CAPITOL_TRADES_IMG = f"https://www.capitoltrades.com/politicians/{politician_id}"
 
 
-NYT_API_URL = f"https://api.nytimes.com/svc/search/v2/articlesearch.json?begin_date="
-
+NYT_API_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "

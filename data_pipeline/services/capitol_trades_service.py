@@ -109,13 +109,13 @@ class CapitolTrades:
 
             if not img:
                 print("member's profile image not found")
-                return official
+                return official.dict()
             
             # image src
             src = img.get("src") or img.get("data-src")
             if not src:
                 print("image element found but no src")
-                return official
+                return official.dict()
             
             # handle relative URLs safely
             photo_url = urljoin(page_url, src)

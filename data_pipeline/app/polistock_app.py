@@ -4,120 +4,126 @@ from services.capitol_trades_service import CapitolTrades
 from services.news_service import NewsArticles
 #from models import Official
 
-def run_polistock():
-    # this script can be stored as it's file function
-    # get's user input and district number returns an object with location info
 
-    user_address = [
-        "street ",
-        "city ",
-        "state ",
-        "zipcode "
-    ]
-
-    for request in user_address:
-        user_input = input(f"{request}")
-        if request == "street":
-            street = user_input
-        elif request == "city":
-            city = user_input
-        elif request == "state":
-            state_name = user_input
-        elif request == "zipcode":
-            zipcode = user_input
+def get_official_data(street, city, state, zipcode):
     
-    # returns district object
-    google_civic = GoogleCivicDistrictValue()
-    district_profile = google_civic._fetch_ocd_id(street,city, state_name, zipcode)
-
-    # accesses Official class
-    congress_member = CongressMemberProfile()
-    congress_profile = congress_member.get_congress_member(district_profile)
-
-    # initiates transactions profile
-    capitol_activity = CapitolTrades()
-    
-    # congress object
-    member_profile = congress_profile
-
-    # returns a list of transaction objects
-    transaction_data = capitol_activity.scrape_politician(member_profile) # removed limits parameter, if fails call from settings
-
-    # capitol_transactions = {
-    #     "company" : "",
-    #     "ticker_symbol" : "",
-    #     "published_date" : "",
-    #     "traded_date" : "",
-    #     "transaction_type" : "",
-    #     "stock_price": ""
-    # }
-
-    # FLAG: may be an issue with import 
-    transactions_list = transaction_data.transactions
-
-    # for items in transactions_list:
-    #     print(items.company)
-    # transactions = []
-    # for transaction in transaction_data:
-        # print(transactions)
-        # company = transaction.company
-        # ticker_symbol = transaction.ticker_symbol
-        # published_date = transaction.published_date
-        # traded_date = transaction.traded_date
-        # transaction_type=transaction.transaction_type
-        # stock_price = transaction.stock_price
-        # congress_profile.officials_transaction(
-        #     company=company,
-        #     ticker_symbol=ticker_symbol,
-        #     published_date=published_date,
-        #     traded_date=traded_date,
-        #     transaction_type=transaction_type,
-        #     stock_price=stock_price
-        # )
-    # print(congress_profile.fullname)
-    # print(congress_profile.transactions[1].stock_price)
-
-    # for items in congress_profile.transactions:
-    #     print(vars(items))
+    try:
+        # gets district information from google civic service
         
-    profile_img = capitol_activity.fetch_headshot_url(congress_profile)
-    member_photo = congress_profile.photo_url
-    member_photo = profile_img
+        print(f"fetching district data")
+        google_civic =GoogleCivicDistrictValue()
+        district = google_civic._fetch_ocd_id(street, city, state, zipcode)
+        
+        if not district:
+            print("failed to fetch district data")
+            return None
+        
+        # gets congress member profile
+        print(f"fetching congress member's profile")
+        congress_service = CongressMemberProfile()
+        official = congress_service.get_congress_member(district)
+        
+        if not official:
+            print("failed to fetch congress member's profile")
+            return None
+        
+        # gets stocks transactions
+        capitol_trades = CapitolTrades()
+        capitol_trades.scrape_politician(official)
+        
+        # gets profile image
+        print(f"fetching profile image")
+        if not official.photo_url:
+            # photo_url = capitol_trades.fetch_headshot_url(official)
+            # official.photo_url = photo_url
+            capitol_trades.fetch_headshot_url(official)
+        
+        # gets news articles
+        print(f"fetching news articles")
+        news_articles = NewsArticles()
+        
+        # counts articles to fetch to limit api calls
+        article_count = 0
+        max_articles_per_company = 2
+        max_total_articles = 6
+        
+        # avoids duplicate articles
+        searched_companies = set()
+        
+        for transaction in official.transactions[:5]:
+            if article_count >= max_total_articles:
+                break
+            
+            company = transaction.company
+            
+            # skips if already searched
+            if company in searched_companies:
+                continue
+            searched_companies.add(company)
+            print(f"searching articles for: {company}")
+            
+            # fetch time
+            articles = news_articles.get_articles(
+                company_name=company,
+                traded_date=transaction.traded_date,
+                limit=max_articles_per_company
+            )
+            
+            # link articles to official
+            for article in articles:
+                if article_count >= max_total_articles:
+                    break
+                official.officials_articles(article)
+                article_count += 1
+        print(f"total articles found: {article_count}")
+    
+        # log output
+        print(f"profile data")
+        print(f"Official: {official.fullname}")
+        print(f"Party: {official.party}")
+        print(f"District: {district.state_code}-{district.district_code}")
+        print(f"Transactions: {len(official.transactions)}")
+        print(f"Articles: {len(official.articles)}")
+        if official.contact:
+            print(f"Contact: {official.contact.phone_number}")
+        
+        # api response
+        return official.to_dict()
+    
+    except Exception as e:
+        print(f"Error in get_official_data: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
-    article_from = transactions_list[0].traded_date
-    article_to = transactions_list[0].published_date
-    company_query = transactions_list[0].company #filter
-    member_query = congress_profile.fullname
+def run_polistock():
+    print("polidemos running...")
+    
+    # user input
+    street = input("street: ")
+    city = input("city: ")
+    state = input("state: ")
+    zipcode = input("zip code: ")
+    
+    # fetch data
+    result = get_official_data(street, city, state, zipcode)
+    
+    if result:
+        print("success")
+        print(f"data fetched:",
+              f"official: {result['fullname']}")
+        return result
+    else:
+        print("failed to fetch data")
+        return None
 
-    #relevant_news = NewsArticles(
-        # headline= None,
-        # article_start =article_from,
-        # article_end =article_to,
-        # query = company_query,
-        # filter_query = member_query,
-        # article_short = None,
-        # article_image= None
-        # )
-
-    # if relevant)news raises errors may be the lack of parameters, uncomment above
-    relevant_news = NewsArticles()
-    member_news = relevant_news.execute(
-        article_begin_date =article_from,
-        article_end_date =article_to,
-        query = company_query,
-        filter_query = member_query,
+def get_official_by_address(address_data):
+    return get_official_data(
+        street=address_data.get('street', ''),
+        city=address_data['city'],
+        state=address_data['state'],
+        zipcode=address_data['zipcode']
     )
-    top_stories = relevant_news.to_parse(member_news)
 
-    member_top_stories = congress_profile.officials_articles(
-        headline=top_stories[0],
-        article_start=article_from,
-        article_end=article_to,
-        filter_query= company_query,
-        query = member_query,
-        article_short= None,
-        article_image=top_stories[1]
-    )
-
-    to_server = congress_profile.to_dict()
-    return to_server
+if __name__ == "__main__":
+    run_polistock()

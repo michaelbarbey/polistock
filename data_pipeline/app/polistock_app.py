@@ -45,7 +45,7 @@ def get_official_data(street, city, state, zipcode):
         # counts articles to fetch to limit api calls
         article_count = 0
         max_articles_per_company = 2
-        max_total_articles = 6
+        max_total_articles = 8
         
         # avoids duplicate articles
         searched_companies = set()

@@ -410,9 +410,10 @@ function Dashboard() {
                         <div className="article-meta-mobile">
                           <span className="article-author-mobile">
                             {article.author}
-                          </span>
-                          <span className="article-date-mobile">
-                            {formatDateForDisplay(article.article_start)}
+                            <br></br>
+                            <span className="article-date-mobile">
+                              {formatDateForDisplay(article.article_start)}
+                            </span>
                           </span>
                         </div>
                       </div>

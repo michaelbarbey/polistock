@@ -375,11 +375,13 @@ body {
 
 .profile-avatar-wrapper {
   flex-shrink: 0;
+  align-items: center;
+  margin: 4%
 }
 
 .profile-avatar {
-  width: 120px;
-  height: 120px;
+  width: 115px;
+  height: 115px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   display: flex;
@@ -387,8 +389,9 @@ body {
   justify-content: center;
   overflow: hidden;
   scale: 120%;
-  margin-left: 20%;
-  margin-top: 15%;
+  /* margin-left: 20%; */
+  /* margin-top: 15%; */
+  /* margin: 25%; */
   border-color: var(--bg-primary);
   box-shadow: #898a8d 1px 1px 2px .5px;
   background-blend-mode: hue;
@@ -626,7 +629,7 @@ body {
 /* ==================== NEWS ARTICLES SECTION ==================== */
 
 .articles-section {
-  margin-top: 48px;
+  margin-top: 12px;
 }
 
 /* Desktop: Full-width image cards */
@@ -824,7 +827,7 @@ body {
     /* Layout for Overlay Effect */
     position: relative;
     display: flex;
-    align-items: flex; /* pushes text to bottom */
+    align-items: flex-end; /* pushes text to bottom */
     
     /* Styling */
     border-radius: 25px;
@@ -843,11 +846,11 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
     background-size: cover;
     background-position: center;
-    z-index: -1; 
+    z-index: 0; 
+    width: 100%;
+    height: 100%;
   }
 
   /* the content div act as the gradient overlay */
